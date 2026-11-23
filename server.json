@@ -1,0 +1,41 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.adekvatologiy/receipt-gate",
+  "title": "Receipt Gate",
+  "description": "Holds an agent's claim of completion until an independent adapter observes the promised state, and keeps the exact gap when it does not.",
+  "version": "0.2.0",
+  "repository": {
+    "url": "https://github.com/adekvatologiy/receipt-gate",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "receipt-gate",
+      "version": "0.2.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "RECEIPT_GATE_LEDGER",
+          "description": "Path of the append-only, hash-chained ledger. Open promises are read back from it, so the same path across runs keeps the debts.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "filepath",
+          "default": "./ledger.jsonl"
+        },
+        {
+          "name": "RECEIPT_GATE_ROOT",
+          "description": "The root every adapter path stays inside. A configured path resolving outside it is refused.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "filepath",
+          "default": "."
+        }
+      ]
+    }
+  ]
+}

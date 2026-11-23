@@ -1,0 +1,93 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pytest
+        run: python -m pip install --upgrade pytest
+
+      - name: Tests
+        run: python -m pytest tests/ -q
+
+      - name: The first ride
+        run: python -m examples.first_ride
+
+      - name: The MCP server over real stdio
+        run: |
+          python - <<'PY' > /tmp/messages.jsonl
+          import json
+          meta = {"_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28"}}
+          for m in (
+              {"jsonrpc": "2.0", "id": 1, "method": "server/discover", "params": dict(meta)},
+              {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": dict(meta)},
+              {"jsonrpc": "2.0", "id": 3, "method": "tools/call",
+               "params": dict(meta, name="verify_ledger", arguments={})},
+          ):
+              print(json.dumps(m))
+          PY
+          python -m receipt_gate.mcp_server < /tmp/messages.jsonl > /tmp/out.jsonl
+          python - <<'PY'
+          import json, sys
+
+          lines = [l for l in open("/tmp/out.jsonl", encoding="utf-8").read().splitlines() if l.strip()]
+          if len(lines) != 3:
+              sys.exit(f"expected 3 replies, got {len(lines)}")
+          for line in lines:
+              if "\n" in line:
+                  sys.exit("a message contained an embedded newline")
+              message = json.loads(line)          # stdout carries MCP messages only
+              if message.get("jsonrpc") != "2.0":
+                  sys.exit(f"not a JSON-RPC 2.0 message: {line[:80]}")
+          discover = json.loads(lines[0])["result"]
+          if "2026-07-28" not in discover["supportedVersions"]:
+              sys.exit("server/discover did not advertise the protocol version")
+          tools = json.loads(lines[1])["result"]["tools"]
+          print(f"stdio clean · {len(tools)} tools · versions {discover['supportedVersions']}")
+          PY
+
+      - name: No dependencies beyond the standard library
+        run: |
+          python - <<'PY'
+          import ast, pathlib, sys
+
+          allowed = set(sys.stdlib_module_names) | {"__future__", "receipt_gate"}
+          bad = []
+          for path in sorted(pathlib.Path("receipt_gate").rglob("*.py")):
+              tree = ast.parse(path.read_text(encoding="utf-8"))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      names = [a.name.split(".")[0] for a in node.names]
+                  elif isinstance(node, ast.ImportFrom):
+                      if node.level:          # relative import, inside the package
+                          continue
+                      names = [(node.module or "").split(".")[0]]
+                  else:
+                      continue
+                  for name in names:
+                      if name and name not in allowed:
+                          bad.append(f"{path}: {name}")
+
+          if bad:
+              print("imports outside the standard library:")
+              for line in bad:
+                  print(" ", line)
+              sys.exit(1)
+          print("standard library only")
+          PY

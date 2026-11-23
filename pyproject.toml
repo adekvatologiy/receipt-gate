@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "receipt-gate"
+version = "0.2.0"
+description = "Agents say done. This checks: a promise names its own receipt before acting, and the claim is held until an independent adapter answers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Shcherbina Vadim", email = "adekvatologiy@icloud.com" }]
+keywords = ["agents", "llm", "verification", "receipts", "promises", "audit", "mcp"]
+dependencies = []
+
+[project.scripts]
+receipt-gate = "receipt_gate.mcp_server:main"
+
+[project.urls]
+Homepage = "https://github.com/adekvatologiy/receipt-gate"
+Specification = "https://github.com/adekvatologiy/receipt-gate/blob/main/SPEC.md"
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["receipt_gate"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
