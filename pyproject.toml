@@ -12,14 +12,6 @@ license = { file = "LICENSE" }
 authors = [{ name = "Shcherbina Vadim", email = "adekvatologiy@icloud.com" }]
 keywords = ["agents", "llm", "verification", "receipts", "promises", "audit", "mcp"]
 dependencies = []
-
-[project.scripts]
-receipt-gate = "receipt_gate.mcp_server:main"
-
-[project.urls]
-Homepage = "https://github.com/adekvatologiy/receipt-gate"
-Specification = "https://github.com/adekvatologiy/receipt-gate/blob/main/SPEC.md"
-
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -35,6 +27,13 @@ classifiers = [
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+
+[project.scripts]
+receipt-gate = "receipt_gate.mcp_server:main"
+
+[project.urls]
+Homepage = "https://github.com/adekvatologiy/receipt-gate"
+Specification = "https://github.com/adekvatologiy/receipt-gate/blob/main/SPEC.md"
 
 [tool.setuptools]
 packages = ["receipt_gate"]
